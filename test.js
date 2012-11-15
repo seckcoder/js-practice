@@ -1,30 +1,88 @@
 function test_modernizr (/**/) {
-	if (Modernizr.canvas) {
-		document.write("support");
-	} else {
-		document.write("not support");
-	}
+    if (Modernizr.canvas) {
+        document.write("support");
+    } else {
+        document.write("not support");
+    }
 }
 function test_jquery (/**/) {
+    // Fetch element and transform to html
+    var ht = $("#test").html();
+    console.log(ht);
+}
+function test_mustache (/**/) {
+    // basic
+    var view = {
+        title: "Joe",
+        calc: function() {
+            return 2 + 4;
+        }
+    };
+    var output = Mustache.render("{{title}} spends {{calc}}", view);
+    console.log(output);
+
+    // variable escaping and object reference
+    view = {
+        name: {
+            first: "Michael",
+            last: "Jackson"
+        },
+        company: "<b>Github</b>"
+    };
+    output = Mustache.render("{{name.first}} {{name.last}} {{company}} {{{company}}} {{&company}}", view);
+    console.log(output);
+    // Sections
+    view = {
+        "person": false,
+        "yaya": true,
+        "list-demo": [
+            {name: "Moe" },
+            {name: "Larry" },
+            {"name" : "Curly"}
+        ],
+        "list-demo-another-way": [
+            "China", "America", "Japan", "German"
+        ],
+        "anime" : [
+            { title: "quanyecha",  actor: "kikyo"},
+            { title: "langkejianxin", actor: "xuedaiba"},
+            { title: "huanghunshaonv", actor: "youko"}
+        ],
+        "name" : function() {
+            return this.title+ " " + this.actor;
+        }
+    };
+    output = Mustache.render("{{#person}} Never shown! {{/person}} {{#yaya}} Shown! {{/yaya}} {{#list-demo}}<b>{{name}}</b>{{/list-demo}} {{#list-demo-another-way}}* {{.}} {{/list-demo-another-way}} {{#anime}}* {{name}} {{/anime}}", view);
+    console.log(output);
+
+    // Functions
+    view = {
+        name: "luluxiu",
+        bold: function() {
+            return function(text, render) {
+                return "<b>" + render(text) + "</b>";
+            }
+        }
+    };
+    output = Mustache.render("{{#bold}}Hi {{name}}.{{/bold}}", view);
+    console.log(output);
+
+    // Inverted Sections and comments
+    view = {
+        repos: false
+    };
+    output = Mustache.render("{{^repos}}No repos {{!ignored}}{{/repos}}", view);
+    console.log(output);
 }
 function test_javascript (/**/) {
-    var f = function() {};
-    console.log(f);
-    var c = {
-        'f': f,
-        'd': 1
-    }
-    console.log(Object.getOwnPropertyDescriptor(c, 'f'));
-    console.log(Object.getOwnPropertyDescriptor(c, 'd'));
 }
-
 function test_canvas (/**/) {
-	if (!Modernizr.canvas) return;
-	var theCavas = document.getElementById('canvasOne');
-	var context = theCavas.getContext("2d");
-	/*drawScreenPath();
-	drawScreenClip();*/
-	function drawScreenAlpha (/**/) {
+    if (!Modernizr.canvas) return;
+    var theCavas = document.getElementById('canvasOne');
+    var context = theCavas.getContext("2d");
+    /*drawScreenPath();
+    drawScreenClip();*/
+    function drawScreenAlpha (/**/) {
         context.fillStyle = "black";
         context.fillRect(10, 10, 200, 200);
 
@@ -63,7 +121,7 @@ function test_canvas (/**/) {
 
         context.beginPath();
         /*context.rect(0, 0, 500, 500);
-         context.clip();*/
+        context.clip();*/
         context.strokeStyle = "blue";
         context.lineWidth = 5;
         context.arc(100, 100, 50, (Math.PI/180)*0, (Math.PI/180)*360, false);
@@ -115,8 +173,8 @@ function FilterModels() {
 
 
 /*
- * 
- * 
- *
- * 
- * */
+* 
+* 
+*
+* 
+* */

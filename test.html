@@ -1,28 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
-	<head>
-		<meta charset="UTF-8">
-		<title>
-			HTML5 Canvas Test
-		</title>
+    <head>
+        <meta charset="UTF-8">
+        <title>
+            HTML5 Canvas Test
+        </title>
         <script type="text/javascript" src="test.js"></script>
         <script type="text/javascript" src="oop_user.js"></script>
         <script type="text/javascript" src="object_user.js"></script>
         <script type="text/javascript" src="array_user.js"></script>
         <script type="text/javascript" src="Set.js"></script>
         <script type="text/javascript" src="lib/jquery.js"> </script>
-        <script type="text/javascript" src="crawler.js"> </script>
+        <script type="text/javascript" src="lib/mustache.js"> </script>
+        <script type="text/javascript" src="utils.js"> </script>
         <script type="text/javascript" src="weiboutils.js"> </script>
+        <script type="text/javascript" src="crawler.js"> </script>
         <script type="text/javascript">
             <!--oop_user();-->
             <!--object_user();-->
             <!--array_user();-->
             <!--test_javascript();-->
+            <!--test_mustache();-->
             <!--setUser();-->
             <!--singletonSetUser();-->
         </script>
-	</head>
-	<body>
-        <button type="button" onclick="crawlRepostTimeline()">Start crawl</button>
-	</body>
+    </head>
+    <body>
+        <button type="button" onclick="startCrawl()">Start crawl</button>
+        <p id="test">
+            <b>Click</b> to change the <span id="tag">html</span>
+        </p>
+    </body>
 </html>

@@ -1,0 +1,46 @@
+/* reset styles. */
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,
+a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,
+small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,
+form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;
+border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent;}
+body{line-height:1;}ol,ul{list-style:none;}blockquote,q{quotes:none;}
+blockquote:before,blockquote:after,q:before,q:after{content:'';content:none;}
+:focus{outline:0;}ins{text-decoration:none;}del{text-decoration: line-through;}
+table{border-collapse:collapse;border-spacing:0;}
+/* clearfix hack. */
+.group:after{content:".";display:block;height:0;clear:both;visibility:hidden;}
+.group{display:inline-block;}* html .group{height:1%;}.group{display:block;}
+.display-none{display:none;}
+
+body {
+    overflow: hidden;
+    font-size: 14px;
+    line-height: 20px;
+    font-family: Verdana, Arial ,"Microsoft YaHei", Simsun, sans-serif;
+}
+
+#popup-wrapper {
+    z-index: 10000;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    position: fixed;
+    background-color: rgba(200, 200, 200, 0.9);
+    display: none;
+    text-align: center;
+}
+
+#popup h2 {
+    font-size: 16px;
+    margin: 5px 0;
+}
+
+#popup p {
+    margin: 5px 0;
+}
+#popup img {
+    box-shadow: inset 0 0 5px gray;
+    border-radius: 3px;
+}
