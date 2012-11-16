@@ -64,13 +64,32 @@
         var fail_message = function(msg, err) {
             on_progress({status:"failed", message: msg, code: err});
         }
-        var add_weibo = function(status, parent_id) {
+        var add_weibo = function(status, depth) {
             if (status.user == null || result[status.id]) return false;
             status_count++;
             result[status.id] = {
-                parent_id: parent_id,
                 reposts_count: status.reposts_count,
+                depth: depth,
+                user: {
+                    screen_name: status.user.screen_name,
+                    province: status.user.province,
+                    gender: status.user.gender,
+                    verified: status.user.verified,
+                    verified_type: status.user.verified_type,
+                    followers_count: status.user.followers_count,
+                    friends_count : status.user.friends_count,
+                    statuses_count: status.user.statuses_count,
+                    profile_image_url: status.user.profile_image_url,
+                    url: status.user.url,
+                    created_at: status.user.created_at
+                }
             };
+            return true;
+        }
+        var add_children = function(root_id, children_ids) {
+            if (result[root_id]) {
+                result[root_id].children = children_ids;
+            }
         }
         var finish = function() {
             if(on_finished) on_finished(result, weibo_id);
@@ -85,7 +104,7 @@
                         return;
                     }
                     on_root_get(r.data, function() {
-                        add_weibo(r.data);
+                        add_weibo(r.data, 0);
                     })
                     var fetch_subtree = function(root, depth, pagenum) {
                         if(!pagenum) {
@@ -94,7 +113,7 @@
                         }
                         for(var page = 1; page <= pagenum; page++) {
                             if (action_count >= rate_limit) break;
-                            if (should_cancel) return;
+                            if (should_cancel) break;
                             action_count++;
                             WeiboVis.getAPI("statuses/repost_timeline", {
                                 id: root,
@@ -105,18 +124,18 @@
                                 var repost_ids = [];
                                 for(var i in r.data.reposts) {
                                     var status = r.data.reposts[i];
-                                    if(add_weibo(status, root)) {
+                                    if(add_weibo(status, depth)) {
                                         ids.push(status.id);
                                     }
                                 }
                                 repost_ids.sort(function(a, b) {
                                     return result[b].reposts_count - result[a].reposts_count;
                                 });
-
-                                if(depth <= depth_limit) {
+                                add_children(status.id, repost_ids);
+                                if(depth < depth_limit) {
                                     for(var i = 0; i < repost_ids.length; i++) {
                                         if(result[[repost_ids[i]]].reposts_count >= repost_limit)
-                                            fetch_subtree(repost_ids[i], depth +1);
+                                            fetch_subtree(repost_ids[i], depth+1);
                                     }
                                 }
                                 action_finished++;
@@ -124,7 +143,7 @@
                             );
                         }
                     };
-                    fetch_subtree(weibo_id, 0);
+                    fetch_subtree(weibo_id, 1);
                     var tm = setInterval(function() {
                         if(action_finished >= action_count || should_cancel) {
                             clearInterval(tm);

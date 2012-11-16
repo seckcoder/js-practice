@@ -1,13 +1,16 @@
 WeiboVis.root_mid = "z5kHslftu"
 WeiboVis.uid = "1197161814"
 //WeiboVis.root_mid = "z5kvCFf0G";
-function startCrawl()
+
+function startCrawl(/**/) {
+    crawlRepostTimeLine({
+        depth_limit: 4,
+        repost_limit: 2,
+        page_limit: 50,
+    });
+}
+function crawlRepostTimeLine(config)
 {
-    var config = {
-        depth_limit: 10,
-        repost_limit: 5,
-        page_limit: 5,
-    };
     var crawl_info = {
         uid: WeiboVis.uid,
         depth_limit: config.depth_limit ? config.depth_limit : 10,
@@ -15,7 +18,7 @@ function startCrawl()
         page_limit: config.page_limit ? config.page_limit : 5
     };
     var progress_object = {};
-    var crawl_control = WeiboVis.getRepostTree(WeiboVis.root_mid, {
+    WeiboVis.getRepostTree(WeiboVis.root_mid, {
         depth_limit: crawl_info.depth_limit,
         repost_limit: crawl_info.repost_limit,
         page_limit: crawl_info.page_limit,
@@ -24,6 +27,7 @@ function startCrawl()
         },
         progress: function(info) {
             if (info.status == "failed") {
+                // TODO : add failure handler 
                 console.log("failed");
             } else if(info.status == "progress") {
                 progress_object.action_count = info.action_count;
