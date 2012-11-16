@@ -57,6 +57,7 @@
         var status_count = 0;
         var weibos = {};   // the root post and reposts for the root post
         var comments = []; // comments of the root post
+        var visited_num = {};
         var action_count = 0;
         var action_finished = 0;
         var action_failed = 0;
@@ -77,13 +78,20 @@
                 friends_count : status.user.friends_count,
                 statuses_count: status.user.statuses_count,
                 profile_image_url: status.user.profile_image_url,
-                url: status.user.url,
+                url: "http://weibo.com/u/" + status.user.id,
                 created_at: status.user.created_at
             }
         }
         var add_weibo = function(status, depth) {
-            if (status.user == null || weibos[status.id]) return false;
-            status_count++;
+            if (status.user == null) return false;
+            if (visited_num[status.id] === undefined) {
+                visited_num[status.id] = 1;
+            } else {
+                visited_num[status.id]++;
+            }
+            if (visited_num[status.id] > depth_limit) return false;
+            if (!weibos[status.id]) status_count++;
+
             weibos[status.id] = {
                 reposts_count: status.reposts_count,
                 comments_count: status.comments_count,
@@ -166,8 +174,10 @@
                             }, function(r) {
                                 if (should_cancel) return;
                                 var repost_ids = [];
-                                for(var i in r.data.reposts) {
+                                for(var i =0; i < r.data.reposts.length; i++) {
                                     var status = r.data.reposts[i];
+                                    //if (depth == 2) console.log(status.user.screen_name + " " + status.user.id);
+                                    //if (depth == 1 && status.user.id == "2827699110") console.log("fuck");
                                     if(add_weibo(status, depth)) {
                                         repost_ids.push(status.id);
                                     }
@@ -175,10 +185,10 @@
                                 /*repost_ids.sort(function(a, b) {
                                     return weibos[b].reposts_count - weibos[a].reposts_count;
                                 });*/
-                                add_childrens(status.id, repost_ids);
+                                add_childrens(root, repost_ids);
                                 if(depth < depth_limit) {
                                     for(var i = 0; i < repost_ids.length; i++) {
-                                        if(weibos[[repost_ids[i]]].reposts_count >= repost_limit)
+                                        if(weibos[repost_ids[i]].reposts_count >= repost_limit)
                                             fetch_subtree(repost_ids[i], depth+1);
                                     }
                                 }

@@ -1,6 +1,6 @@
-//WeiboVis.root_mid = "z5kHslftu"
-WeiboVis.root_mid = "z5hq12bGP"
-//WeiboVis.root_mid = "z5kvCFf0G";
+//WeiboVis.root_mid = "z5kHslftu"    // demo for many number of reposts
+//WeiboVis.root_mid = "z5hq12bGP"   // demo for small number of reposts
+WeiboVis.root_mid = "z5szZsV8a"  // some number of reposts http://weibo.com/1847982423/z5szZsV8a
 WeiboVis.uid = "1197161814"
 WeiboVis.appkey = null;
 WeiboVis.access_token = "2.00Kij3FD0X4mszcb910f3a6e00NSLk";
@@ -41,7 +41,7 @@ function crawlRepostTimeLine(config)
         repost_limit: crawl_info.repost_limit,
         page_limit: crawl_info.page_limit,
         finished: function(data, root_id) {
-            console.log(data);
+            //console.log(data);
         },
         progress: function(info) {
             if (info.status == "failed") {
