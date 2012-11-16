@@ -1,3 +1,6 @@
+// Copyright 2012 jike Inc. All Rights Reserved.
+// Author: liwei@jike.com (Li Wei)
+
 (function() {
     var NS = WeiboVis;
     var api_calling_queue = [];
@@ -82,7 +85,7 @@
                 created_at: status.user.created_at
             }
         }
-        var add_weibo = function(status, depth) {
+        var add_weibo = function(status, depth, parent_id) {
             if (status.user == null) return false;
             if (visited_num[status.id] === undefined) {
                 visited_num[status.id] = 1;
@@ -96,11 +99,13 @@
                 reposts_count: status.reposts_count,
                 comments_count: status.comments_count,
                 depth: depth,
+                parent: parent_id,
+                id: status.id,
                 user: fetch_user_info(status)
             };
             return true;
         }
-        var add_childrens = function(root_id, children_ids) {
+        /*var add_childrens = function(root_id, children_ids) {
             if (weibos[root_id]) {
                 if (weibos[root_id].children === undefined)
                     weibos[root_id].children = children_ids;
@@ -108,11 +113,12 @@
                     weibos[root_id].children = weibos[root_id].children.concat(children_ids);
                 }
             }
-        }
+        }*/
         var add_comments = function(root_id, cmts) {
             for(var i = 0; i < cmts.length; i++) {
                 if (cmts[i].user !== null) {
                     comments.push({
+                        id: cmts[i].id,
                         user: fetch_user_info(cmts[i])
                     })
                 }
@@ -178,14 +184,14 @@
                                     var status = r.data.reposts[i];
                                     //if (depth == 2) console.log(status.user.screen_name + " " + status.user.id);
                                     //if (depth == 1 && status.user.id == "2827699110") console.log("fuck");
-                                    if(add_weibo(status, depth)) {
+                                    if(add_weibo(status, depth, root)) {
                                         repost_ids.push(status.id);
                                     }
                                 }
                                 /*repost_ids.sort(function(a, b) {
                                     return weibos[b].reposts_count - weibos[a].reposts_count;
                                 });*/
-                                add_childrens(root, repost_ids);
+                                //add_childrens(root, repost_ids);
                                 if(depth < depth_limit) {
                                     for(var i = 0; i < repost_ids.length; i++) {
                                         if(weibos[repost_ids[i]].reposts_count >= repost_limit)
