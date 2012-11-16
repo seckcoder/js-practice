@@ -1,12 +1,30 @@
-WeiboVis.root_mid = "z5kHslftu"
-WeiboVis.uid = "1197161814"
+//WeiboVis.root_mid = "z5kHslftu"
+WeiboVis.root_mid = "z5hq12bGP"
 //WeiboVis.root_mid = "z5kvCFf0G";
+WeiboVis.uid = "1197161814"
+WeiboVis.appkey = null;
+WeiboVis.access_token = "2.00Kij3FD0X4mszcb910f3a6e00NSLk";
 
 function startCrawl(/**/) {
     crawlRepostTimeLine({
         depth_limit: 4,
         repost_limit: 2,
-        page_limit: 50,
+        crawl_nrepost_per_page : 200,
+        crawl_ncomment_per_page : 100,
+        repost_page_limit: 50,
+        comment_page_limit: 100,
+    });
+}
+function test_api (/**/) {
+    WeiboVis.getAPI("statuses/queryid", {mid: WeiboVis.root_mid, type:1, isBase62: 1}, function(r) {
+        weibo_id = r.data.id
+        console.log(r.data);
+        WeiboVis.getAPI("comments/show", {id: weibo_id, page:1, count:1}, function(r) {
+            console.log(r.data);
+            WeiboVis.getAPI("statuses/repost_timeline", {id: weibo_id, page:1, count:1}, function(r) {
+                console.log(r.data);
+            });
+        });
     });
 }
 function crawlRepostTimeLine(config)
@@ -22,7 +40,7 @@ function crawlRepostTimeLine(config)
         depth_limit: crawl_info.depth_limit,
         repost_limit: crawl_info.repost_limit,
         page_limit: crawl_info.page_limit,
-        finished: function(data, origin) {
+        finished: function(data, root_id) {
             console.log(data);
         },
         progress: function(info) {

@@ -1,8 +1,5 @@
 (function() {
     var NS = WeiboVis;
-    crawl_num_per_page = 200;
-    WeiboVis.appkey = null;
-    WeiboVis.access_token = "2.00Kij3FD0X4mszcb910f3a6e00NSLk";
     var api_calling_queue = [];
     var api_current_waiting = 0;
     WeiboVis.add('api-status');
@@ -53,9 +50,13 @@
         var on_root_get = param.get_root ? param.get_root : function(status, next) { next(); };
         var depth_limit = param.depth_limit ? param.depth_limit : 4;
         var repost_limit = param.repost_limit ? param.repost_limit : 2;
-        var page_limit = param.page_limit ? param.page_limit : 10;
+        var repost_page_limit = param.repost_page_limit ? param.repost_page_limit : 10;
+        var comment_page_limit = param.comment_page_limit ? param.comment_page_limit : 10;
+        var crawl_nrepost_per_page = param.crawl_nrepost_per_page ? param.crawl_nrepost_per_page : 100;
+        var crawl_ncomment_per_page = param.crawl_ncomment_per_page ? param.crawl_ncomment_per_page : 100;
         var status_count = 0;
-        var result = {};
+        var weibos = {};   // the root post and reposts for the root post
+        var comments = []; // comments of the root post
         var action_count = 0;
         var action_finished = 0;
         var action_failed = 0;
@@ -64,35 +65,54 @@
         var fail_message = function(msg, err) {
             on_progress({status:"failed", message: msg, code: err});
         }
+        var fetch_user_info = function(status) {
+            return {
+                id: status.user.id,
+                screen_name: status.user.screen_name,
+                province: status.user.province,
+                gender: status.user.gender,
+                verified: status.user.verified,
+                verified_type: status.user.verified_type,
+                followers_count: status.user.followers_count,
+                friends_count : status.user.friends_count,
+                statuses_count: status.user.statuses_count,
+                profile_image_url: status.user.profile_image_url,
+                url: status.user.url,
+                created_at: status.user.created_at
+            }
+        }
         var add_weibo = function(status, depth) {
-            if (status.user == null || result[status.id]) return false;
+            if (status.user == null || weibos[status.id]) return false;
             status_count++;
-            result[status.id] = {
+            weibos[status.id] = {
                 reposts_count: status.reposts_count,
+                comments_count: status.comments_count,
                 depth: depth,
-                user: {
-                    screen_name: status.user.screen_name,
-                    province: status.user.province,
-                    gender: status.user.gender,
-                    verified: status.user.verified,
-                    verified_type: status.user.verified_type,
-                    followers_count: status.user.followers_count,
-                    friends_count : status.user.friends_count,
-                    statuses_count: status.user.statuses_count,
-                    profile_image_url: status.user.profile_image_url,
-                    url: status.user.url,
-                    created_at: status.user.created_at
-                }
+                user: fetch_user_info(status)
             };
             return true;
         }
-        var add_children = function(root_id, children_ids) {
-            if (result[root_id]) {
-                result[root_id].children = children_ids;
+        var add_childrens = function(root_id, children_ids) {
+            if (weibos[root_id]) {
+                if (weibos[root_id].children === undefined)
+                    weibos[root_id].children = children_ids;
+                else {
+                    weibos[root_id].children = weibos[root_id].children.concat(children_ids);
+                }
             }
         }
+        var add_comments = function(root_id, cmts) {
+            for(var i = 0; i < cmts.length; i++) {
+                if (cmts[i].user !== null) {
+                    comments.push({
+                        user: fetch_user_info(cmts[i])
+                    })
+                }
+            }
+            return true;
+        }
         var finish = function() {
-            if(on_finished) on_finished(result, weibo_id);
+            if(on_finished) on_finished({"weibos": weibos, "comments" : comments}, weibo_id);
         };
         WeiboVis.getAPI("account/rate_limit_status", { }, function(r) {
             rate_limit = Math.min(r.data.remaining_ip_hits, r.data.remaining_user_hits);
@@ -106,10 +126,34 @@
                     on_root_get(r.data, function() {
                         add_weibo(r.data, 0);
                     })
+                    var cal_page_num = function(total_num, num_per_page, repost_page_limit) {
+                        return Math.min(Math.ceil(total_num / num_per_page), repost_page_limit);
+                    }
+                    var fetch_comments = function(root, pagenum) {
+                        if(!pagenum) {
+                            pagenum = cal_page_num(weibos[root].comments_count,
+                                                   crawl_ncomment_per_page,
+                                                   comment_page_limit);
+                        }
+                        for(var page = 1; page <= pagenum; page++) {
+                            if (action_count >= rate_limit) break;
+                            if (should_cancel) break;
+                            action_count++;
+                            WeiboVis.getAPI("comments/show", {
+                                id: root,
+                                page: page,
+                                count: crawl_ncomment_per_page
+                            }, function(r) {
+                                add_comments(root, r.data.comments);
+                                action_finished++;
+                            }, function() { action_failed++; action_finished++;});
+                        }
+                    };
                     var fetch_subtree = function(root, depth, pagenum) {
                         if(!pagenum) {
-                            pagenum = Math.ceil(result[root].reposts_count/crawl_num_per_page);
-                            pagenum = Math.min(pagenum, page_limit);
+                            pagenum = cal_page_num(weibos[root].reposts_count,
+                                                   crawl_nrepost_per_page, 
+                                                   repost_page_limit);
                         }
                         for(var page = 1; page <= pagenum; page++) {
                             if (action_count >= rate_limit) break;
@@ -118,23 +162,23 @@
                             WeiboVis.getAPI("statuses/repost_timeline", {
                                 id: root,
                                 page: page,
-                                count: crawl_num_per_page
+                                count: crawl_nrepost_per_page
                             }, function(r) {
                                 if (should_cancel) return;
                                 var repost_ids = [];
                                 for(var i in r.data.reposts) {
                                     var status = r.data.reposts[i];
                                     if(add_weibo(status, depth)) {
-                                        ids.push(status.id);
+                                        repost_ids.push(status.id);
                                     }
                                 }
-                                repost_ids.sort(function(a, b) {
-                                    return result[b].reposts_count - result[a].reposts_count;
-                                });
-                                add_children(status.id, repost_ids);
+                                /*repost_ids.sort(function(a, b) {
+                                    return weibos[b].reposts_count - weibos[a].reposts_count;
+                                });*/
+                                add_childrens(status.id, repost_ids);
                                 if(depth < depth_limit) {
                                     for(var i = 0; i < repost_ids.length; i++) {
-                                        if(result[[repost_ids[i]]].reposts_count >= repost_limit)
+                                        if(weibos[[repost_ids[i]]].reposts_count >= repost_limit)
                                             fetch_subtree(repost_ids[i], depth+1);
                                     }
                                 }
@@ -143,6 +187,7 @@
                             );
                         }
                     };
+                    fetch_comments(weibo_id);
                     fetch_subtree(weibo_id, 1);
                     var tm = setInterval(function() {
                         if(action_finished >= action_count || should_cancel) {

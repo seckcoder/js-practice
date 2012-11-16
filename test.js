@@ -75,7 +75,9 @@ function test_mustache (/**/) {
     console.log(output);
 }
 function test_javascript (/**/) {
+    
 }
+
 function test_canvas (/**/) {
     if (!Modernizr.canvas) return;
     var theCavas = document.getElementById('canvasOne');
