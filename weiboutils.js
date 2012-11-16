@@ -218,8 +218,8 @@
                             }
                         }
                     }, 100);
-                }, function() {fail_message("rate");});
-            }, function() {fail_message("rate");});
-        }, function() {fail_message("rate");})
+                }, function() {fail_message("rate");});  // out of rate
+            }, function() {fail_message("rate");});  // out of rate
+        }, function() {fail_message("rate");})  // out of rate
     };
 })();
