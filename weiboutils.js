@@ -176,8 +176,6 @@
                                 page: page,
                                 count: crawl_nrepost_per_page
                             }, function(r) {
-                                console.log(r);
-                                return;
                                 if (should_cancel) return;
                                 var repost_ids = [];
                                 for(var i =0; i < r.data.reposts.length; i++) {
