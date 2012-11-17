@@ -75,7 +75,7 @@ function test_mustache (/**/) {
     console.log(output);
 }
 function test_javascript (/**/) {
-    
+    var obj = {};
 }
 
 function test_canvas (/**/) {

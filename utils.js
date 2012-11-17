@@ -74,5 +74,11 @@ var WeiboVis = (function() {
         return NS;
     };
     NS.raise = NS.raiseEvent;
+
+    NS.incf = function(k, v) {
+        var incfv = v ? v : 1;
+        if (this[k] === undefined) this[k] = 0;
+        this[k] += incfv;
+    }
     return NS;
 })();

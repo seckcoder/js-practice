@@ -61,6 +61,7 @@
         var weibos = {};   // the root post and reposts for the root post
         var comments = []; // comments of the root post
         var visited_num = {};
+        visited_num.incf = WeiboVis.incf;
         var action_count = 0;
         var action_finished = 0;
         var action_failed = 0;
@@ -87,11 +88,7 @@
         }
         var add_weibo = function(status, depth, parent_id) {
             if (status.user == null) return false;
-            if (visited_num[status.id] === undefined) {
-                visited_num[status.id] = 1;
-            } else {
-                visited_num[status.id]++;
-            }
+            WeiboVis.incf.call(visited_num, status.id);
             if (visited_num[status.id] > depth_limit) return false;
             if (!weibos[status.id]) status_count++;
 
@@ -100,6 +97,7 @@
                 comments_count: status.comments_count,
                 depth: depth,
                 parent: parent_id,
+                text: status.text,
                 id: status.id,
                 user: fetch_user_info(status)
             };
@@ -178,6 +176,8 @@
                                 page: page,
                                 count: crawl_nrepost_per_page
                             }, function(r) {
+                                console.log(r);
+                                return;
                                 if (should_cancel) return;
                                 var repost_ids = [];
                                 for(var i =0; i < r.data.reposts.length; i++) {
