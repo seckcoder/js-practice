@@ -78,7 +78,7 @@ function crawlRepostTimeLine(config) {
                         " action_failed: " + progress_object.action_failed +
                         " rate_limit: " + progress_object.rate_limit +
                         " status_count: " + progress_object.status_count);
-            console.log("finished in " + counter + " seconds");
+            console.log("finished in " + counter/10 + " seconds");
         }
     }, 100);
 }
