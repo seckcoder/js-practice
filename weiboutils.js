@@ -48,15 +48,21 @@
     };
     WeiboVis.getRepostTree = function(root_mid, param) {
         if(!param) param = {};
-        var on_progress = param.progress ? param.progress : function() {};
-        var on_finished = param.finished ? param.finished : function() {};
-        var on_root_get = param.get_root ? param.get_root : function(status, next) { next(); };
-        var depth_limit = param.depth_limit ? param.depth_limit : 4;
-        var repost_limit = param.repost_limit ? param.repost_limit : 2;
-        var repost_page_limit = param.repost_page_limit ? param.repost_page_limit : 10;
-        var comment_page_limit = param.comment_page_limit ? param.comment_page_limit : 10;
-        var crawl_nrepost_per_page = param.crawl_nrepost_per_page ? param.crawl_nrepost_per_page : 100;
-        var crawl_ncomment_per_page = param.crawl_ncomment_per_page ? param.crawl_ncomment_per_page : 100;
+        var on_progress = WeiboVis.getDefault(param.progress, function() {});
+        var on_finished = WeiboVis.getDefault(param.finished, function() {});
+        var on_root_get = WeiboVis.getDefault(param.get_root, function(status, next) { next(); });
+        var depth_limit = WeiboVis.getDefault(param.depth_limit, 4);
+        var max_repost_num  = WeiboVis.getDefault(param.max_repost_num, 100000);
+        var crawl_nrepost_per_page = WeiboVis.getDefault(param.crawl_nrepost_per_page, 200);
+        var crawl_ncomment_per_page = WeiboVis.getDefault(param.crawl_ncomment_per_page, 100);
+        var cal_repost_page_limit = function() {
+            return Math.ceil(max_repost_num / crawl_nrepost_per_page);
+        };
+        var cal_comment_page_limit = function() {
+            return Math.ceil(max_repost_num / crawl_ncomment_per_page);
+        };
+        var repost_page_limit = param.repost_page_limit ? param.repost_page_limit : cal_repost_page_limit();
+        var comment_page_limit = param.comment_page_limit ? param.comment_page_limit : cal_comment_page_limit();
         var status_count = 0;
         var weibos = {};   // the root post and reposts for the root post
         var comments = []; // comments of the root post
@@ -104,14 +110,14 @@
             return true;
         }
         /*var add_childrens = function(root_id, children_ids) {
-            if (weibos[root_id]) {
-                if (weibos[root_id].children === undefined)
-                    weibos[root_id].children = children_ids;
-                else {
-                    weibos[root_id].children = weibos[root_id].children.concat(children_ids);
-                }
-            }
-        }*/
+          if (weibos[root_id]) {
+          if (weibos[root_id].children === undefined)
+          weibos[root_id].children = children_ids;
+          else {
+          weibos[root_id].children = weibos[root_id].children.concat(children_ids);
+          }
+          }
+          }*/
         var add_comments = function(root_id, cmts) {
             for(var i = 0; i < cmts.length; i++) {
                 if (cmts[i].user !== null) {
@@ -135,6 +141,7 @@
                         fail_message("root", r.data? r.data.error_code : null);
                         return;
                     }
+                    var total_repost_num = r.data.reposts_count;
                     on_root_get(r.data, function() {
                         add_weibo(r.data, 0);
                     })
@@ -161,6 +168,12 @@
                             }, function() { action_failed++; action_finished++;});
                         }
                     };
+                    var cal_repost_limit = function() {
+                        if (total_repost_num <= 1000) return 2;
+                        else return Math.ceil(Math.log(total_repost_num));
+                    };
+                    var repost_limit = WeiboVis.getDefault(param.repost_limit, cal_repost_limit());
+                    //console.log(repost_limit + " " + repost_page_limit + " " + comment_page_limit);
                     var fetch_subtree = function(root, depth, pagenum) {
                         if(!pagenum) {
                             pagenum = cal_page_num(weibos[root].reposts_count,
@@ -176,6 +189,7 @@
                                 page: page,
                                 count: crawl_nrepost_per_page
                             }, function(r) {
+                                action_finished++;
                                 if (should_cancel) return;
                                 var repost_ids = [];
                                 for(var i =0; i < r.data.reposts.length; i++) {
@@ -187,8 +201,8 @@
                                     }
                                 }
                                 /*repost_ids.sort(function(a, b) {
-                                    return weibos[b].reposts_count - weibos[a].reposts_count;
-                                });*/
+                                  return weibos[b].reposts_count - weibos[a].reposts_count;
+                                  });*/
                                 //add_childrens(root, repost_ids);
                                 if(depth < depth_limit) {
                                     for(var i = 0; i < repost_ids.length; i++) {
@@ -196,9 +210,8 @@
                                             fetch_subtree(repost_ids[i], depth+1);
                                     }
                                 }
-                                action_finished++;
                             }, function() { action_failed++; action_finished++; }
-                            );
+                                           );
                         }
                     };
                     fetch_comments(weibo_id);
