@@ -1,3 +1,7 @@
+// Copyright 2012 jike Inc. All Rights Reserved.
+// Author: liwei@jike.com (Li Wei)
+
+
 var WeiboVis = (function() {
     var NS = {};
 
@@ -75,6 +79,7 @@ var WeiboVis = (function() {
     };
     NS.raise = NS.raiseEvent;
 
+    // helper methods
     NS.incf = function(k, v) {
         var incfv = v ? v : 1;
         if (this[k] === undefined) this[k] = 0;
