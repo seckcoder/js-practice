@@ -75,7 +75,14 @@ function test_mustache (/**/) {
     console.log(output);
 }
 function test_javascript (/**/) {
-    var obj = {};
+/*    var sum = function(n) {*/
+        //var ret = 0;
+        //var local_f = function() {ret += n; return ret;};
+        //return local_f();
+    /*};*/
+    //console.log(sum(3));
+
+    
 }
 
 function test_canvas (/**/) {
