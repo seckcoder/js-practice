@@ -9,6 +9,11 @@ function test_jquery (/**/) {
     // Fetch element and transform to html
     var ht = $("#test").html();
     console.log(ht);
+    // Deep copy
+
+    var arr1 = [{name: "liwei", age: 22}, {name: "chunhuo", age: 23}];
+    var arr2 = $.extend(true, [], arr1);
+    console.log(arr2);
 }
 function test_mustache (/**/) {
     // basic
@@ -75,13 +80,7 @@ function test_mustache (/**/) {
     console.log(output);
 }
 function test_javascript (/**/) {
-/*    var sum = function(n) {*/
-        //var ret = 0;
-        //var local_f = function() {ret += n; return ret;};
-        //return local_f();
-    /*};*/
-    //console.log(sum(3));
-
+    test_jquery();
     
 }
 
@@ -180,6 +179,18 @@ function FilterModels() {
     }
 }
 
+function test_api (/**/) {
+    WeiboVis.getAPI("users/show", {uid: "1262486753"}, function(r) {
+        console.log(r);
+    })
+}
+
+function test_date (/**/) {
+    var d = new Date();
+    var created_at = new Date("Fri Aug 28 00:00:00 +0800 2009");
+    console.log(d);
+    console.log(created_at);
+}
 
 /*
 * 

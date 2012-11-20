@@ -105,6 +105,7 @@
                 parent: parent_id,
                 text: status.text,
                 id: status.id,
+                created_at: status.created_at,
                 user: fetch_user_info(status)
             };
             return true;
