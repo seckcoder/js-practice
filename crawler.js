@@ -262,7 +262,7 @@ function crawlRepostTimeLine(config) {
                     prov_name=prov_data.provinces[i].name;
                 province_map[prov_id] = prov_name;
             }
-            tidy(root_id, data);
+            //tidy(root_id, data);
         }).fail(function() {
             console.log("Server busy");
         });
